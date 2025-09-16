@@ -216,9 +216,35 @@ const App = () => {
       return null // No words with difficulty <= targetDifficulty that haven't been selected
     }
 
-    // Return random word from all available words (difficulty <= targetDifficulty)
-    const randomIndex = Math.floor(Math.random() * availableWords.length)
-    const selectedWordLower = availableWords[randomIndex]
+    // Separate words by exact target difficulty vs easier
+    const exactDifficultyWords = availableWords.filter(
+      word => wordDifficulties[word] === targetDifficulty
+    )
+    const easierWords = availableWords.filter(
+      word => wordDifficulties[word] < targetDifficulty
+    )
+
+    // 90% of the time prefer exact difficulty, 10% prefer easier
+    const preferExactDifficulty = Math.random() < 0.9
+    let selectedWordLower: string
+
+    if (preferExactDifficulty && exactDifficultyWords.length > 0) {
+      // Choose from words at exact target difficulty
+      const randomIndex = Math.floor(Math.random() * exactDifficultyWords.length)
+      selectedWordLower = exactDifficultyWords[randomIndex]
+    } else if (easierWords.length > 0) {
+      // Choose from easier words
+      const randomIndex = Math.floor(Math.random() * easierWords.length)
+      selectedWordLower = easierWords[randomIndex]
+    } else if (exactDifficultyWords.length > 0) {
+      // Fallback to exact difficulty if no easier words available
+      const randomIndex = Math.floor(Math.random() * exactDifficultyWords.length)
+      selectedWordLower = exactDifficultyWords[randomIndex]
+    } else {
+      // This shouldn't happen given our earlier check, but just in case
+      const randomIndex = Math.floor(Math.random() * availableWords.length)
+      selectedWordLower = availableWords[randomIndex]
+    }
 
     // Find the original word from wordList to preserve original casing
     const originalWord = currentWordList.find((word: string) => word.toLowerCase() === selectedWordLower) || selectedWordLower
